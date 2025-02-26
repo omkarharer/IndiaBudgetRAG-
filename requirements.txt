@@ -11,4 +11,3 @@ chainlit
 python-dotenv
 pypdf
 tiktoken
-pysqlite3
