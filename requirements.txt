@@ -12,4 +12,5 @@ python-dotenv
 pypdf
 tiktoken
 pinecone
+pinecone-client==2.2.2
 
