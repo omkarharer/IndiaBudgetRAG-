@@ -2,7 +2,7 @@ import chainlit as cl
 from src.helper import load_vector_db, load_llm, load_memory, setup_qa_chain, pinecone_setup, setup_qa_chain_pinecone, pinecone_setup_new
 
 # Initialize components
-pinecone = pinecone_setup_new()
+pinecone = pinecone_setup()
 llm = load_llm()
 memory = load_memory(llm)
 
