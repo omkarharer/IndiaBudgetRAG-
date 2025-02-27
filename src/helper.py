@@ -111,6 +111,50 @@ def pinecone_setup():
     
     return docsearch
 
+
+def pinecone_setup_new():
+    """Initialize Pinecone and connect to the existing index."""
+    # Load Pinecone API key from environment variables
+    try:
+        # For Streamlit deployment
+        import streamlit as st
+        pinecone_api_key = st.secrets["pinecone"]
+    except:
+        # For local development
+        from dotenv import load_dotenv
+        load_dotenv()
+        pinecone_api_key = os.environ.get('pinecone')
+    
+    if not pinecone_api_key:
+        raise ValueError("Pinecone API key not found in environment variables.")
+    
+    # Initialize Pinecone client
+    pc = Pinecone(api_key=pinecone_api_key)
+    
+    # Define the index name
+    index_name = "rag"  # Replace with your Pinecone index name
+    
+    # Check if the index exists
+    if index_name not in pc.list_indexes().names():
+        raise ValueError(f"Index '{index_name}' does not exist in your Pinecone project.")
+    
+    # Load embeddings model
+    embedding_model = HuggingFaceBgeEmbeddings(model_name='sentence-transformers/all-MiniLM-L6-v2')
+    
+    # Initialize Pinecone vector store
+    try:
+        # Try the direct initialization approach
+        index = pc.Index(index_name)
+        docsearch = LangchainPinecone(index, embedding_model.embed_query, "text")
+    except Exception as e:
+        # Fallback to the from_existing_index approach
+        print(f"Direct initialization failed: {e}. Falling back to from_existing_index.")
+        docsearch = LangchainPinecone.from_existing_index(index_name, embedding_model)
+    
+    return docsearch
+
+
+
 # Set up QA chain for Pinecone
 def setup_qa_chain_pinecone(docsearch, llm, memory):
     """Set up the ConversationalRetrievalChain with a custom prompt template for Pinecone."""
