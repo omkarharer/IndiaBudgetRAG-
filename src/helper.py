@@ -86,6 +86,7 @@ def pinecone_setup():
     """Initialize Pinecone and connect to the existing index."""
     # Load Pinecone API key from environment variables
     pinecone_api_key = os.environ.get('pinecone')
+    os.environ["PINECONE_API_KEY"] = pinecone_api_key
     if not pinecone_api_key:
         raise ValueError("Pinecone API key not found in environment variables.")
     
@@ -106,8 +107,8 @@ def pinecone_setup():
     embedding_model = HuggingFaceBgeEmbeddings(model_name='sentence-transformers/all-MiniLM-L6-v2')
     
     # Initialize Pinecone vector store
-    docsearch = LangchainPinecone(index, embedding_model.embed_query, "text")
-    # docsearch = LangchainPinecone.from_existing_index(index_name, embedding_model)
+    # docsearch = LangchainPinecone(index, embedding_model.embed_query, "text")
+    docsearch = LangchainPinecone.from_existing_index(index_name, embedding_model)
     
     return docsearch
 
