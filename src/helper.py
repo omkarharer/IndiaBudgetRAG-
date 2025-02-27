@@ -6,7 +6,7 @@ from langchain.prompts import PromptTemplate
 from langchain_groq import ChatGroq
 from langchain.memory import ConversationSummaryMemory
 from dotenv import load_dotenv
-import pinecone
+# import pinecone
 from pinecone import Pinecone
 from langchain.vectorstores import Pinecone as LangchainPinecone
 
