@@ -106,8 +106,8 @@ def pinecone_setup():
     embedding_model = HuggingFaceBgeEmbeddings(model_name='sentence-transformers/all-MiniLM-L6-v2')
     
     # Initialize Pinecone vector store
-    # docsearch = LangchainPinecone(index, embedding_model.embed_query, "text")
-    docsearch = LangchainPinecone.from_existing_index(index_name, embedding_model)
+    docsearch = LangchainPinecone(index, embedding_model.embed_query, "text")
+    # docsearch = LangchainPinecone.from_existing_index(index_name, embedding_model)
     
     return docsearch
 
