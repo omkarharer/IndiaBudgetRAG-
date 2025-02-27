@@ -11,4 +11,4 @@ chainlit
 python-dotenv
 pypdf
 tiktoken
-pinecone 
+pinecone==5.4.2
