@@ -11,5 +11,5 @@ chainlit
 python-dotenv
 pypdf
 tiktoken
-pinecone-client
+pinecone
 
