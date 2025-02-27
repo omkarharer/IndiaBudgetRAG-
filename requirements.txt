@@ -11,7 +11,5 @@ chainlit
 python-dotenv
 pypdf
 tiktoken
-<<<<<<< HEAD
 pinecone-client
-=======
->>>>>>> e465160abd4c7f99a1887e1d9f8a517bb76d5bf5
+
