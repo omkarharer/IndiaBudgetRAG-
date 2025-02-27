@@ -129,31 +129,19 @@ def pinecone_setup_new():
     if not pinecone_api_key:
         raise ValueError("Pinecone API key not found in environment variables.")
     
-    # Initialize Pinecone client
-    pc = Pinecone(api_key=pinecone_api_key)
+    # Set the API key in the environment (required for from_existing_index)
+    os.environ["PINECONE_API_KEY"] = pinecone_api_key
     
     # Define the index name
     index_name = "rag"  # Replace with your Pinecone index name
-    
-    # Check if the index exists
-    if index_name not in pc.list_indexes().names():
-        raise ValueError(f"Index '{index_name}' does not exist in your Pinecone project.")
     
     # Load embeddings model
     embedding_model = HuggingFaceBgeEmbeddings(model_name='sentence-transformers/all-MiniLM-L6-v2')
     
     # Initialize Pinecone vector store
-    try:
-        # Try the direct initialization approach
-        index = pc.Index(index_name)
-        docsearch = LangchainPinecone(index, embedding_model.embed_query, "text")
-    except Exception as e:
-        # Fallback to the from_existing_index approach
-        print(f"Direct initialization failed: {e}. Falling back to from_existing_index.")
-        docsearch = LangchainPinecone.from_existing_index(index_name, embedding_model)
+    docsearch = LangchainPinecone.from_existing_index(index_name, embedding_model)
     
     return docsearch
-
 
 
 # Set up QA chain for Pinecone
