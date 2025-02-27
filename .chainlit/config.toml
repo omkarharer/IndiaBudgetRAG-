@@ -53,7 +53,7 @@ edit_message = true
 
 [UI]
 # Name of the assistant.
-name = "Assistant"
+name = "IndiaBudgetGPT"
 
 # default_theme = "dark"
 
