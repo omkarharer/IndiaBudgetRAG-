@@ -12,3 +12,4 @@ python-dotenv
 pypdf
 tiktoken
 pinecone==5.4.2
+streamlit 
