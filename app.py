@@ -1,13 +1,19 @@
 import chainlit as cl
-from src.helper import load_vector_db, load_llm, load_memory, setup_qa_chain, pinecone_setup, setup_qa_chain_pinecone, pinecone_setup_new
+from src.helper import setup_qa_chain_pinecone_new,load_embedding,load_vector_db, load_llm, load_memory, setup_qa_chain, pinecone_setup, setup_qa_chain_pinecone, pinecone_setup_new
 
 # Initialize components
 pinecone = pinecone_setup()
+
+# Step 1: Initialize Pinecone
+# index = pinecone_setup_new()
+embedding=load_embedding()
 llm = load_llm()
 memory = load_memory(llm)
 
 # Set up QA chain
 qa_chain = setup_qa_chain_pinecone(pinecone, llm, memory)
+# Step 4: Set up QA chain
+# qa_chain = setup_qa_chain_pinecone_new(index, embedding, llm, memory)
 
 @cl.on_chat_start
 async def on_chat_start():

@@ -1,6 +1,6 @@
 import os
-from langchain.vectorstores import Chroma, Pinecone
-from langchain.embeddings import HuggingFaceBgeEmbeddings
+from langchain_community.vectorstores import Chroma, Pinecone
+from langchain_community.embeddings import HuggingFaceBgeEmbeddings
 from langchain.chains import ConversationalRetrievalChain
 from langchain.prompts import PromptTemplate
 from langchain_groq import ChatGroq
@@ -8,7 +8,9 @@ from langchain.memory import ConversationSummaryMemory
 from dotenv import load_dotenv
 # import pinecone
 from pinecone import Pinecone
-from langchain.vectorstores import Pinecone as LangchainPinecone
+# from langchain.vectorstores import Pinecone as LangchainPinecone
+from langchain_community.vectorstores import Pinecone as LangchainPinecone
+
 
 # Load environment variables
 load_dotenv()
@@ -113,35 +115,35 @@ def pinecone_setup():
     return docsearch
 
 
-def pinecone_setup_new():
-    """Initialize Pinecone and connect to the existing index."""
-    # Load Pinecone API key from environment variables
-    try:
-        # For Streamlit deployment
-        import streamlit as st
-        pinecone_api_key = st.secrets["pinecone"]
-    except:
-        # For local development
-        from dotenv import load_dotenv
-        load_dotenv()
-        pinecone_api_key = os.environ.get('pinecone')
+# def pinecone_setup_new():
+#     """Initialize Pinecone and connect to the existing index."""
+#     # Load Pinecone API key from environment variables
+#     try:
+#         # For Streamlit deployment
+#         import streamlit as st
+#         pinecone_api_key = st.secrets["pinecone"]
+#     except:
+#         # For local development
+#         from dotenv import load_dotenv
+#         load_dotenv()
+#         pinecone_api_key = os.environ.get('pinecone')
     
-    if not pinecone_api_key:
-        raise ValueError("Pinecone API key not found in environment variables.")
+#     if not pinecone_api_key:
+#         raise ValueError("Pinecone API key not found in environment variables.")
     
-    # Set the API key in the environment (required for from_existing_index)
-    os.environ["PINECONE_API_KEY"] = pinecone_api_key
+#     # Set the API key in the environment (required for from_existing_index)
+#     os.environ["PINECONE_API_KEY"] = pinecone_api_key
     
-    # Define the index name
-    index_name = "rag"  # Replace with your Pinecone index name
+#     # Define the index name
+#     index_name = "rag"  # Replace with your Pinecone index name
     
-    # Load embeddings model
-    embedding_model = HuggingFaceBgeEmbeddings(model_name='sentence-transformers/all-MiniLM-L6-v2')
+#     # Load embeddings model
+#     embedding_model = HuggingFaceBgeEmbeddings(model_name='sentence-transformers/all-MiniLM-L6-v2')
     
-    # Initialize Pinecone vector store
-    docsearch = LangchainPinecone.from_existing_index(index_name, embedding_model)
+#     # Initialize Pinecone vector store
+#     docsearch = LangchainPinecone.from_existing_index(index_name, embedding_model)
     
-    return docsearch
+#     return docsearch
 
 
 # Set up QA chain for Pinecone
@@ -161,6 +163,63 @@ def setup_qa_chain_pinecone(docsearch, llm, memory):
     qa_chain = ConversationalRetrievalChain.from_llm(
         llm=llm,
         retriever=retriever,
+        memory=memory,
+        combine_docs_chain_kwargs={"prompt": PROMPT}
+    )
+    return qa_chain
+
+
+def pinecone_setup_new():
+    """Initialize Pinecone and connect to the existing index."""
+    # Load Pinecone API key from environment variables
+    pinecone_api_key = os.environ.get('pinecone')
+    
+    if not pinecone_api_key:
+        raise ValueError("Pinecone API key not found in environment variables.")
+    
+    # Set the API key in the environment (required for Pinecone client)
+    os.environ["PINECONE_API_KEY"] = pinecone_api_key
+    
+    # Initialize Pinecone client
+    pc = Pinecone(api_key=pinecone_api_key)
+    
+    # Define the index name
+    index_name = "rag"  # Replace with your Pinecone index name
+    
+    # Connect to the index
+    index = pc.Index(index_name)
+    
+    return index
+
+
+def setup_qa_chain_pinecone_new(index, embedding_model, llm, memory):
+    """Set up the ConversationalRetrievalChain with a custom prompt template for Pinecone."""
+    # Convert the query into an embedding vector
+    def get_query_vector(query):
+        return embedding_model.embed_query(query)
+    
+    # Query the Pinecone index
+    def query_index(query, top_k=5):
+        query_vector = get_query_vector(query)
+        response = index.query(
+            vector=query_vector,
+            top_k=top_k,
+            include_metadata=True
+        )
+        return [match['metadata']['text'] for match in response["matches"]]
+    
+    # Custom prompt template for the budget chatbot
+    prompt_templates = """You are an expert financial analyst specializing in the Indian Budget. Provide clear, insightful, and data-driven responses to the following question:  
+    Context: {context}  
+    User: {question}  
+    BudgetBot:"""
+    
+    PROMPT = PromptTemplate(template=prompt_templates, input_variables=['context', 'question'])
+    
+    # Create ConversationalRetrievalChain
+    qa_chain = ConversationalRetrievalChain.from_llm(
+        llm=llm,
+        retriever=lambda query: query_index(query),
         memory=memory,
         combine_docs_chain_kwargs={"prompt": PROMPT}
     )
